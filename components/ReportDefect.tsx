@@ -38,7 +38,7 @@ export default function ReportDefect({ project, onClose, onSuccess, lang }: Repo
 
     if (isSupabaseLive) {
       try {
-        await supabase
+        await supabase!
           .from('projects')
           .update({
             status: 'defect',

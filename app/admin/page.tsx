@@ -29,7 +29,7 @@ export default function AdminPage() {
       setLoading(false);
       return;
     }
-    const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase!.from('projects').select('*').order('created_at', { ascending: false });
     setProjects((data || []).map(normalizeProject));
     setLoading(false);
   }
@@ -38,7 +38,7 @@ export default function AdminPage() {
     const updated = { ...p, verified: !p.verified };
     setProjects((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
     if (isSupabaseLive) {
-      await supabase.from('projects').update({ verified: !p.verified }).eq('id', p.id);
+      await supabase!.from('projects').update({ verified: !p.verified }).eq('id', p.id);
     }
   }
 
@@ -46,7 +46,7 @@ export default function AdminPage() {
     if (!confirm('Delete this project? This cannot be undone.')) return;
     setProjects((prev) => prev.filter((p) => p.id !== id));
     if (isSupabaseLive) {
-      await supabase.from('projects').delete().eq('id', id);
+      await supabase!.from('projects').delete().eq('id', id);
     }
     setMessage('Project deleted.');
   }
@@ -76,7 +76,7 @@ export default function AdminPage() {
     setMessage(`Importing ${bulkPreview.length} projects…`);
 
     if (isSupabaseLive) {
-      const { error } = await supabase.from('projects').insert(
+      const { error } = await supabase!.from('projects').insert(
         bulkPreview.map((p) => ({
           ...p,
           stages: typeof p.stages === 'string' ? p.stages : JSON.stringify(p.stages || []),

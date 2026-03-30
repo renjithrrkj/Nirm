@@ -73,7 +73,7 @@ export default function AddProjectPage() {
 
     try {
       if (isSupabaseLive) {
-        const { data, error: sbError } = await supabase
+        const { data, error: sbError } = await supabase!
           .from('projects')
           .insert(newProject)
           .select()
