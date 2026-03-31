@@ -41,13 +41,11 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
-      - name: Install Playwright browsers
-        run: playwright install chromium --with-deps
-
       - name: Run scrapers
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
         run: |
           SCRAPERS="${{ github.event.inputs.scrapers || 'pmgsy etenders iroads' }}"
           DRY_RUN_FLAG=""
