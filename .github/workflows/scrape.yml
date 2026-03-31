@@ -39,7 +39,7 @@ jobs:
           cache-dependency-path: scraper/requirements.txt
 
       - name: Install Python dependencies
-        run: pip install -r requirements.txt
+        run: pip install --no-cache-dir -r requirements.txt
 
       - name: Run scrapers
         env:

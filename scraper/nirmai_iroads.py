@@ -34,16 +34,16 @@ def fetch_iroads(district: str = "Ernakulam") -> list[dict]:
     log.info(f"Firecrawl scraping iROADS for {district}")
 
     try:
-        result = app.scrape(url, formats=["markdown"])
-        markdown = getattr(result, "markdown", "") or ""
+        result = app.scrape_url(url, params={"formats": ["markdown"]})
+        markdown = result.get("markdown", "") if isinstance(result, dict) else (getattr(result, "markdown", "") or "")
     except Exception as e:
         log.error(f"Firecrawl failed for iROADS {district}: {e}")
         return []
 
     if not markdown:
         try:
-            result = app.scrape(IROADS_BASE, formats=["markdown"])
-            markdown = getattr(result, "markdown", "") or ""
+            result = app.scrape_url(IROADS_BASE, params={"formats": ["markdown"]})
+            markdown = result.get("markdown", "") if isinstance(result, dict) else (getattr(result, "markdown", "") or "")
         except Exception as e:
             log.error(f"Firecrawl fallback failed for iROADS: {e}")
             return []

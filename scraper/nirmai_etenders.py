@@ -56,8 +56,8 @@ def fetch_etenders(page: int = 1) -> list[dict]:
     log.info(f"Firecrawl scraping eTenders page {page}")
 
     try:
-        result = app.scrape(url, formats=["markdown"])
-        markdown = getattr(result, "markdown", "") or ""
+        result = app.scrape_url(url, params={"formats": ["markdown"]})
+        markdown = result.get("markdown", "") if isinstance(result, dict) else (getattr(result, "markdown", "") or "")
     except Exception as e:
         log.error(f"Firecrawl failed for eTenders page {page}: {e}")
         return []
