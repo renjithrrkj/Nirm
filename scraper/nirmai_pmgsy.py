@@ -64,8 +64,8 @@ def fetch_pmgsy_roads(district: str = "Ernakulam") -> list[dict]:
     log.info(f"Firecrawl scraping PMGSY for {district} ({url})")
 
     try:
-        result = app.scrape_url(url, params={"formats": ["markdown"]})
-        markdown = result.get("markdown", "")
+        result = app.scrape(url, formats=["markdown"])
+        markdown = getattr(result, "markdown", "") or ""
     except Exception as e:
         log.error(f"Firecrawl failed for PMGSY {district}: {e}")
         return []
