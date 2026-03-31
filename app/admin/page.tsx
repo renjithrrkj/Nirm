@@ -8,6 +8,14 @@ import { normalizeProject, SEED_PROJECTS_WITH_IDS, STATUS_LABELS, TYPE_EMOJI } f
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'nirmai-admin';
 
+interface ScrapeRun {
+  id: number;
+  run_at: string;
+  scrapers: string[];
+  results: Record<string, number | string>;
+  dry_run: boolean;
+}
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState('');
@@ -17,10 +25,24 @@ export default function AdminPage() {
   const [message, setMessage] = useState('');
   const [bulkInput, setBulkInput] = useState('');
   const [bulkPreview, setBulkPreview] = useState<Partial<Project>[]>([]);
+  const [scrapeRuns, setScrapeRuns] = useState<ScrapeRun[]>([]);
 
   useEffect(() => {
-    if (authed) loadProjects();
+    if (authed) {
+      loadProjects();
+      loadScrapeRuns();
+    }
   }, [authed]);
+
+  async function loadScrapeRuns() {
+    if (!isSupabaseLive) return;
+    const { data } = await supabase!
+      .from('scrape_runs')
+      .select('*')
+      .order('run_at', { ascending: false })
+      .limit(5);
+    setScrapeRuns(data || []);
+  }
 
   async function loadProjects() {
     setLoading(true);
@@ -152,6 +174,69 @@ export default function AdminPage() {
         {message && (
           <div className="mb-4 bg-[rgba(0,229,160,0.08)] border border-[rgba(0,229,160,0.25)] rounded-lg px-4 py-3 text-[12px] text-[#00e5a0] font-['DM_Mono']">
             {message}
+          </div>
+        )}
+
+        {/* Scrape run history */}
+        {isSupabaseLive && (
+          <div className="bg-[#161b27] border border-[rgba(255,255,255,0.07)] rounded-[14px] p-5 mb-6">
+            <h2 className="font-['Syne'] text-[16px] font-bold mb-3">Scraper Status</h2>
+            {scrapeRuns.length === 0 ? (
+              <div className="text-[12px] text-[#7a8299] font-['DM_Mono']">
+                No scrape runs recorded yet. Trigger the GitHub Actions workflow to populate.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {scrapeRuns.map((run) => {
+                  const errors = Object.keys(run.results || {}).filter((k) => k.endsWith('_error'));
+                  const hasErrors = errors.length > 0;
+                  return (
+                    <div
+                      key={run.id}
+                      className={`rounded-lg border px-4 py-3 ${
+                        hasErrors
+                          ? 'bg-[rgba(255,77,77,0.06)] border-[rgba(255,77,77,0.2)]'
+                          : 'bg-[#1e2535] border-[rgba(255,255,255,0.07)]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-4 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px]">{hasErrors ? '❌' : '✅'}</span>
+                          <span className="text-[12px] font-['DM_Mono'] text-[#e8eaf0]">
+                            {new Date(run.run_at).toLocaleString('en-IN', {
+                              day: 'numeric', month: 'short', year: 'numeric',
+                              hour: '2-digit', minute: '2-digit',
+                            })}
+                          </span>
+                          {run.dry_run && (
+                            <span className="text-[10px] font-['DM_Mono'] bg-[rgba(0,153,255,0.12)] text-[#0099ff] px-2 py-[1px] rounded-full">
+                              dry run
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-3 text-[11px] font-['DM_Mono'] text-[#7a8299]">
+                          {(run.scrapers || []).map((s) => (
+                            <span key={s}>
+                              {s}: <span className="text-[#e8eaf0]">{run.results?.[s] ?? '—'}</span>
+                            </span>
+                          ))}
+                          <span>
+                            saved: <span className="text-[#00e5a0]">{run.results?.total_saved ?? '—'}</span>
+                          </span>
+                        </div>
+                      </div>
+                      {hasErrors && (
+                        <div className="mt-2 text-[11px] font-['DM_Mono'] text-[#ff4d4d]">
+                          {errors.map((k) => (
+                            <div key={k}>{k.replace('_error', '')}: {String(run.results[k])}</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

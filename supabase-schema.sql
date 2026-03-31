@@ -32,6 +32,19 @@ CREATE POLICY "public read"   ON projects FOR SELECT USING (true);
 CREATE POLICY "public insert" ON projects FOR INSERT WITH CHECK (true);
 CREATE POLICY "public update" ON projects FOR UPDATE USING (true);
 
+-- Scrape run history (written by run_all.py after each run)
+CREATE TABLE IF NOT EXISTS scrape_runs (
+  id          bigserial PRIMARY KEY,
+  run_at      timestamptz NOT NULL DEFAULT now(),
+  scrapers    text[],
+  results     jsonb,
+  dry_run     boolean DEFAULT false
+);
+
+ALTER TABLE scrape_runs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "public read" ON scrape_runs FOR SELECT USING (true);
+CREATE POLICY "public insert" ON scrape_runs FOR INSERT WITH CHECK (true);
+
 -- Storage bucket for defect photos
 -- Run in Storage section of Supabase dashboard:
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('defect-photos', 'defect-photos', true);
