@@ -85,10 +85,8 @@ async def run_scrapers(scrapers: list[str], dry_run: bool = False) -> dict:
         pmgsy_projects: list[dict] = []
         try:
             from nirmai_pmgsy import fetch_pmgsy_roads, KERALA_DISTRICTS
-            for district, district_id in list(KERALA_DISTRICTS.items())[:3]:
-                batch = fetch_pmgsy_roads(district_id=district_id)
-                for p in batch:
-                    p["district"] = district  # override with correct district name
+            for district in list(KERALA_DISTRICTS.keys())[:3]:
+                batch = fetch_pmgsy_roads(district=district)
                 pmgsy_projects.extend(batch)
                 time.sleep(2)
             all_projects.extend(pmgsy_projects)
@@ -121,11 +119,11 @@ async def run_scrapers(scrapers: list[str], dry_run: bool = False) -> dict:
     if "iroads" in scrapers:
         log.info("=== Running iROADS scraper ===")
         try:
-            from nirmai_iroads import scrape_iroads
-            districts = ["ERNAKULAM", "THRISSUR", "KOZHIKODE"]
+            from nirmai_iroads import fetch_iroads
+            districts = ["Ernakulam", "Thrissur", "Kozhikode"]
             iroads_projects: list[dict] = []
             for district in districts:
-                batch = await scrape_iroads(district=district)
+                batch = fetch_iroads(district=district)
                 iroads_projects.extend(batch)
                 time.sleep(3)
             all_projects.extend(iroads_projects)
